@@ -5,23 +5,36 @@ const path = require("path");
 const session = require("express-session");
 const nunjucks = require("nunjucks");
 const dotenv = require("dotenv");
+const passport = require("passport");
+const { sequelize } = require("./models");
 
 dotenv.config();
 const pageRouter = require("./routes/page");
+const authRouter = require("./routes/auth");
+const passportConfig = require("./passport");
 
 const app = express();
+passportConfig();
 app.set("port", process.env.PORT || 8001);
 app.set("view engine", "html");
 nunjucks.configure("views", {
   express: app,
   watch: true,
 });
+sequelize
+  .sync({ force: false })
+  .then(() => {
+    console.log("데이터베이스 연결 성공");
+  })
+  .catch((err) => {
+    console.log(err);
+  });
 // 로깅하는것을 dev:개발모드로 한다. 나중에는 combined: 서비스 모드로 해준다.
 app.use(morgan("dev"));
 // public 파일을 자유롭게 접근할 수 있도록 한다.
 app.use(express.static(path.join(__dirname, "public")));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.json()); // req.body 를 ajax json 요청으로부터
+app.use(express.urlencoded({ extended: false })); // req.body 폼으로부터
 app.use(cookieParser(process.env.COOKIE_SECRET));
 app.use(
   session({
@@ -34,9 +47,13 @@ app.use(
     },
   })
 );
-
+app.use(passport.initialize()); // req.user, req.login, req.isAuthenticate, req.logout
+app.use(passport.session()); // connect.sid 라는 이름으로 세션 쿠키가 브라우저로 전송
 app.use("/", pageRouter);
-app.use((req, res, next) => { // 404 NOT FOUND
+app.use("/auth", authRouter);
+
+app.use((req, res, next) => {
+  // 404 NOT FOUND
   //없는 페이지인경우
   const error = new Error(`${req.method} ${req.url} 라우터가 없습니다.`);
   error.status = 404;
