@@ -11,6 +11,8 @@ const { sequelize } = require("./models");
 dotenv.config();
 const pageRouter = require("./routes/page");
 const authRouter = require("./routes/auth");
+const postRouter = require("./routes/post");
+const userRouter = require("./routes/user");
 const passportConfig = require("./passport");
 
 const app = express();
@@ -33,6 +35,7 @@ sequelize
 app.use(morgan("dev"));
 // public 파일을 자유롭게 접근할 수 있도록 한다.
 app.use(express.static(path.join(__dirname, "public")));
+app.use("/img", express.static(path.join(__dirname, "uploads")));
 app.use(express.json()); // req.body 를 ajax json 요청으로부터
 app.use(express.urlencoded({ extended: false })); // req.body 폼으로부터
 app.use(cookieParser(process.env.COOKIE_SECRET));
@@ -51,6 +54,8 @@ app.use(passport.initialize()); // req.user, req.login, req.isAuthenticate, req.
 app.use(passport.session()); // connect.sid 라는 이름으로 세션 쿠키가 브라우저로 전송
 app.use("/", pageRouter);
 app.use("/auth", authRouter);
+app.use("/post", postRouter);
+app.use("/user", userRouter);
 
 app.use((req, res, next) => {
   // 404 NOT FOUND
