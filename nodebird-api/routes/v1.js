@@ -5,9 +5,11 @@ const {
   getMyPosts,
   getPostsByHashtag,
 } = require("../controllers/v1");
-const { verifyToken } = require("../middlewares");
+const { verifyToken, deprecated } = require("../middlewares");
 
 const router = express.Router();
+
+router.use(deprecated);
 
 router.post("/token", createToken);
 router.get("/test", verifyToken, tokenTest);

@@ -43,7 +43,7 @@ const request = async (req, api) => {
       delete req.session.jwt;
       return request(req, api);
     }
-    throw error.response;
+    return error.response;
   }
 };
 
@@ -69,4 +69,8 @@ exports.searchByHashtag = async (req, res, next) => {
     console.error(error);
     next(error);
   }
+};
+
+exports.renderMain = (req, res) => {
+  res.render("main", { key: process.env.CLIENT_SECRET });
 };
